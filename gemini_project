@@ -1,0 +1,60 @@
+############################################
+# CABEÇALHO CONFIGURÁVEL
+############################################
+cabeçalho = ' INÍCIO '
+titulo = ' BETO GAMES - A MELHOR DO SUL '
+rodape = ' FIM '
+
+print(f'{cabeçalho:-^40}')
+print(f'{titulo:^40}')
+print('-' * 40)
+
+############################################
+# BANCO DE DADOS E ENTRADAS
+############################################
+# Tupla pareada: (Nome, Preço)
+jogos = ('MINECRAFT', 180.00, 'PES 2026', 230.00, 'FIFA 2026', 250.00)
+valor_jogo = 0
+
+cliente = str(input('Qual o seu nome? ')).strip().capitalize()
+compra = str(input('Qual jogo você deseja comprar? ')).strip().upper()
+
+############################################
+# LÓGICA DE BUSCA (ESTOQUE)
+############################################
+# O loop percorre a tupla pulando de 2 em 2 (apenas os nomes)
+for c in range(0, len(jogos), 2):
+    if compra == jogos[c]:
+        valor_jogo = jogos[c + 1] # Pega o preço que está na posição seguinte
+        break # Se achou, para a busca imediatamente
+
+############################################
+# PROCESSAMENTO DE VENDAS
+############################################
+if valor_jogo == 0:
+    print(f'\nLamento, {cliente}! O jogo "{compra}" não está disponível.')
+else:
+    # Caso seja o Administrador
+    if cliente == 'Alberto':
+        desconto = valor_jogo * 0.50
+        print(f'\nOlá, Chefe! Aplicando desconto de 50%.')
+        print(f'Jogo: {compra} | De R${valor_jogo:.2f} por R${valor_jogo - desconto:.2f}')
+    
+    # Caso seja Cliente Comum
+    else:
+        print(f'\nOlá, {cliente}! O jogo "{compra}" custa R${valor_jogo:.2f}')
+        pagamento = float(input('Quanto você deseja pagar? R$'))
+
+        if pagamento < valor_jogo:
+            print(f'Infelizmente não realizamos descontos. Venda cancelada.')
+        elif pagamento > valor_jogo:
+            print(f'Valor incorreto. Não aceitamos pagamentos acima do preço de tabela.')
+        else:
+            print(f'\nSUCESSO! O jogo {compra} foi vendido para {cliente}!')
+
+############################################
+# RODAPÉ
+############################################
+print('-' * 40)
+print(f'{rodape:-^40}')
+print('Obrigado pela Compra! Volte Sempre.')
