@@ -1,0 +1,246 @@
+import random
+import os
+import time
+
+def limpar_tela():
+    """Limpa o console para melhor visualização."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def pausar():
+    """Pausa a execução para o usuário ler."""
+    input("\n[Pressione ENTER para continuar...]")
+
+# --- BANCO DE DADOS DE CONTEÚDO (BASEADO NOS SLIDES) ---
+conteudos = {
+    "1": {
+        "titulo": "Introdução e Evolução Histórica",
+        "texto": """
+=== EVOLUÇÃO DOS SISTEMAS OPERACIONAIS ===
+
+Contexto Histórico (Décadas de 1960 e 1970):
+- Os primeiros computadores (governos, faculdades, empresas) eram MONOTAREFA.
+- Conceito Central: O hardware era dedicado a executar apenas UMA tarefa por vez.
+- Todos os recursos da máquina (processador, memória, periféricos) ficavam focados exclusivamente naquele único processamento.
+"""
+    },
+    "2": {
+        "titulo": "Sistemas Monoprogramáveis / Monotarefa",
+        "texto": """
+=== SISTEMAS MONOPROGRAMÁVEIS ===
+
+Características Principais:
+1.  **Recursos Dedicados:** O SO utiliza todos os recursos para uma única tarefa.
+2.  **Ociosidade:** O processador fica ocioso (parado) se o programa estiver esperando algo (ex: usuário digitar um dado).
+3.  **Desperdício de Memória:** Se o programa não ocupa toda a RAM, o resto fica inútil.
+4.  **Periféricos Exclusivos:** Impressoras e discos não são compartilhados durante a execução.
+
+Resumo: Simples, mas ineficiente no uso do hardware.
+"""
+    },
+    "3": {
+        "titulo": "Sistemas Multiprogramáveis / Multitarefa",
+        "texto": """
+=== SISTEMAS MULTIPROGRAMÁVEIS ===
+
+O grande salto na evolução. Permitem compartilhar recursos e processar várias tarefas "ao mesmo tempo".
+
+TIPOS DE SISTEMAS MULTITAREFA:
+
+A) Batch (Lote):
+   - Década de 1960.
+   - Sem interação com o usuário.
+   - Armazenado em fita/disco.
+   - Vantagem: Otimiza o processador. Desvantagem: Tempo de resposta longo.
+
+B) Tempo Compartilhado (Time-Sharing):
+   - Divide o tempo do processador em "fatias" (time slices).
+   - Permite interação do usuário (comandos).
+   - Se a fatia acaba, o processo para e aguarda a próxima vez.
+
+C) Tempo Real (Real-Time):
+   - Crítico quanto ao tempo. Não usa fatias de tempo comuns.
+   - Dedica toda a capacidade para concluir uma tarefa específica dentro de um prazo rígido.
+"""
+    },
+    "4": {
+        "titulo": "Sistemas com Múltiplos Processadores",
+        "texto": """
+=== MÚLTIPLOS PROCESSADORES ===
+
+Utilizam duas ou mais UCPs (CPUs) trabalhando em conjunto.
+Vantagens: Escalabilidade, Disponibilidade (tolerância a falhas) e Balanceamento de Carga.
+
+CLASSIFICAÇÃO:
+
+1. Fortemente Acoplados (Multiprocessadores):
+   - Compartilham a MESMA memória física e o MESMO Sistema Operacional.
+   - Ex: Windows, Unix.
+   - Subdivisões:
+     * SMP: Tempo de acesso à memória igual para todos processadores.
+     * NUMA: Tempo de acesso varia conforme o conjunto de processadores.
+
+2. Fracamente Acoplados:
+   - Sistemas independentes interconectados em rede. Cada um tem seu próprio SO.
+   - Subdivisões:
+     * SOR (SO de Rede): Servidor compartilha recursos, mas cada máquina é independente.
+     * Sistemas Distribuídos: Vários computadores agem como se fossem um único sistema para o usuário.
+"""
+    }
+}
+
+# --- BANCO DE DADOS DE EXERCÍCIOS (30 QUESTÕES BASEADAS NO PDF) ---
+banco_questoes = [
+    {"p": "Nas décadas de 1960/70, como eram conhecidos os sistemas que executavam apenas uma tarefa?", "r": "Monotarefa", "opts": ["Multitarefa", "Monotarefa", "Tempo Real", "Distribuídos"]},
+    {"p": "Em sistemas monoprogramáveis, o que acontece com o processador quando o usuário está digitando um dado?", "r": "Fica ocioso", "opts": ["Processa outra tarefa", "Aumenta a velocidade", "Fica ocioso", "Desliga"]},
+    {"p": "Qual destes NÃO é um tipo de sistema multiprogramável citado nos slides?", "r": "Sistema Neural", "opts": ["Batch", "Tempo Compartilhado", "Tempo Real", "Sistema Neural"]},
+    {"p": "Qual sistema é caracterizado por NÃO exigir interação com o usuário e ser armazenado em fitas?", "r": "Batch", "opts": ["Tempo Real", "Batch", "SMP", "Monotarefa"]},
+    {"p": "Nos sistemas de Tempo Compartilhado, como o tempo do processador é gerido?", "r": "Dividido em fatias de tempo", "opts": ["Fila única sem interrupção", "Dividido em fatias de tempo", "Aleatoriamente", "Pelo tamanho do arquivo"]},
+    {"p": "Qual a principal diferença do Sistema de Tempo Real para o de Tempo Compartilhado?", "r": "Não usa fatias de tempo", "opts": ["Usa fita magnética", "Não usa fatias de tempo", "É monousuário", "Não usa memória"]},
+    {"p": "Sistemas Fortemente Acoplados compartilham principalmente:", "r": "Memória física única", "opts": ["Rede Wi-Fi", "Memória física única", "Apenas impressoras", "Nenhuma memória"]},
+    {"p": "O Windows e o Unix são citados nos slides como exemplos de sistemas:", "r": "Fortemente Acoplados", "opts": ["Fracamente Acoplados", "Monotarefa", "Fortemente Acoplados", "Batch"]},
+    {"p": "Em sistemas SMP (Simétricos), como é o acesso à memória?", "r": "Leva o mesmo tempo para todos", "opts": ["Varia por processador", "É bloqueado", "Leva o mesmo tempo para todos", "Não existe"]},
+    {"p": "O que significa a sigla SOR nos sistemas fracamente acoplados?", "r": "Sistemas Operacionais de Rede", "opts": ["Sistemas de Operação Rápida", "Sistemas Operacionais de Rede", "Sistemas Otimizados de RAM", "Sem Operação Real"]},
+    {"p": "Qual vantagem dos multiprocessadores permite manter o processo mesmo em caso de falhas?", "r": "Disponibilidade", "opts": ["Escalabilidade", "Disponibilidade", "Custo", "Monotarefa"]},
+    {"p": "Qual sistema trata computadores interligados como se fossem um único sistema?", "r": "Sistemas Distribuídos", "opts": ["Sistemas Batch", "Sistemas Distribuídos", "Sistemas Monotarefa", "SOR"]},
+    {"p": "No modelo NUMA, o tempo de acesso à memória:", "r": "Varia conforme o conjunto", "opts": ["É igual para todos", "É instantâneo", "Varia conforme o conjunto", "Não é permitido"]},
+    {"p": "Sistemas Multiprogramáveis Monousuário (como PCs antigos) permitem:", "r": "Uma pessoa realizar várias tarefas", "opts": ["Vários usuários simultâneos", "Uma pessoa realizar várias tarefas", "Nenhuma tarefa", "Apenas acesso à internet"]},
+    {"p": "O que é 'Balanceamento de Carga' em multiprocessadores?", "r": "Distribuir processamento entre CPUs", "opts": ["Aumentar a energia", "Distribuir processamento entre CPUs", "Diminuir a memória", "Usar apenas uma CPU"]},
+    {"p": "Nos sistemas Fracamente Acoplados, cada sistema possui:", "r": "Seu próprio SO", "opts": ["Um SO compartilhado", "Seu próprio SO", "Nenhum SO", "Memória compartilhada"]},
+    {"p": "Qual característica descreve a ociosidade em sistemas Monotarefa?", "r": "Recursos parados esperando I/O", "opts": ["Uso 100% da CPU", "Recursos parados esperando I/O", "Multiprocessamento", "Divisão de tempo"]},
+    {"p": "Sistemas de Tempo Real são cruciais para tarefas que dependem de:", "r": "Prazos rígidos", "opts": ["Interface bonita", "Prazos rígidos", "Armazenamento em fita", "Interação social"]},
+    {"p": "A 'Escalabilidade' em multiprocessadores refere-se a:", "r": "Ampliar potencial com mais CPUs", "opts": ["Reduzir o tamanho físico", "Ampliar potencial com mais CPUs", "Usar menos energia", "Vender mais computadores"]},
+    {"p": "Qual a principal preocupação que surgiu com os sistemas Multiprogramáveis?", "r": "Gerenciamento e compartilhamento", "opts": ["Cor do gabinete", "Gerenciamento e compartilhamento", "Uso de mouse", "Tamanho da tela"]},
+    {"p": "Sistemas Batch são otimizados para:", "r": "Uso máximo do processador", "opts": ["Interação com usuário", "Jogos", "Uso máximo do processador", "Redes sociais"]},
+    {"p": "Em sistemas Monotarefa, os periféricos são:", "r": "Dedicados a um único usuário", "opts": ["Compartilhados na rede", "Dedicados a um único usuário", "Virtuais", "Inexistentes"]},
+    {"p": "Qual destes é um exemplo de sistema fracamente acoplado?", "r": "Cluster de computadores", "opts": ["Placa mãe com 2 CPUs", "Smartphone", "Cluster de computadores", "Calculadora"]},
+    {"p": "Nos sistemas de Tempo Compartilhado, se a fatia de tempo acaba, o processo:", "r": "É interrompido", "opts": ["É finalizado forçadamente", "É interrompido", "Trava a máquina", "Apaga os dados"]},
+    {"p": "Sistemas de multiprocessamento são muito usados para:", "r": "Processamento de imagens e aeroespacial", "opts": ["Edição de texto simples", "Processamento de imagens e aeroespacial", "Calculadoras de bolso", "Relógios digitais"]},
+    {"p": "O conceito de 'fatia de tempo' pertence a qual categoria?", "r": "Multitarefa / Tempo Compartilhado", "opts": ["Monotarefa", "Multitarefa / Tempo Compartilhado", "Multiprocessador NUMA", "Sistema Batch"]},
+    {"p": "Um sistema operacional de servidor que compartilha arquivos na rede é:", "r": "Fracamente Acoplado (SOR)", "opts": ["Fortemente Acoplado", "Fracamente Acoplado (SOR)", "Monotarefa", "Tempo Real"]},
+    {"p": "A arquitetura onde vários processadores compartilham a mesma memória é:", "r": "Fortemente Acoplada", "opts": ["Fracamente Acoplada", "Distribuída", "Fortemente Acoplada", "De Rede"]},
+    {"p": "Em um sistema Monotarefa, se um programa não usa toda a memória RAM:", "r": "O resto fica inutilizado", "opts": ["O resto é emprestado", "O resto fica inutilizado", "O sistema cria mais memória", "O PC desliga"]},
+    {"p": "Sistemas de Tempo Real priorizam:", "r": "O tempo de execução", "opts": ["A interface gráfica", "O armazenamento", "O tempo de execução", "A economia de energia"]}
+]
+
+def rodar_quiz(qtd):
+    """Lógica principal do quiz."""
+    limpar_tela()
+    
+    # Validação para não pedir mais questões do que existem
+    qtd = min(qtd, len(banco_questoes))
+    
+    # Sorteio aleatório sem repetição
+    indices_sorteados = random.sample(range(len(banco_questoes)), qtd)
+    
+    acertos = 0
+    
+    print(f"=== INICIANDO QUIZ DE {qtd} QUESTÕES ===\n")
+    
+    for i, idx in enumerate(indices_sorteados):
+        questao = banco_questoes[idx]
+        print(f"Questão {i+1}/{qtd}: {questao['p']}")
+        
+        # Embaralha as alternativas para não ficar viciado
+        opcoes = questao['opts'].copy()
+        random.shuffle(opcoes)
+        
+        # Mostra as opções
+        for j, opt in enumerate(opcoes):
+            print(f"   {j+1}) {opt}")
+        
+        # Coleta resposta
+        while True:
+            try:
+                resposta_user = int(input("\nSua resposta (número): "))
+                if 1 <= resposta_user <= 4:
+                    break
+                print("Por favor, digite um número entre 1 e 4.")
+            except ValueError:
+                print("Entrada inválida. Digite um número.")
+        
+        escolha_texto = opcoes[resposta_user - 1]
+        
+        # Verifica acerto
+        if escolha_texto == questao['r']:
+            print("\n✅ CORRETO!")
+            acertos += 1
+        else:
+            print(f"\n❌ ERRADO. A resposta certa era: {questao['r']}")
+        
+        print("-" * 40)
+        time.sleep(1.5) # Pausa dramática para ler o feedback
+        limpar_tela()
+
+    # Resultado Final
+    nota = (acertos / qtd) * 10
+    print("=== RESULTADO FINAL ===")
+    print(f"Você acertou {acertos} de {qtd} questões.")
+    print(f"Sua nota: {nota:.1f}")
+    
+    if nota == 10:
+        print("🏆 PERFEITO! Você domina Sistemas Operacionais!")
+    elif nota >= 7:
+        print("👏 Muito bom! Continue estudando.")
+    else:
+        print("📚 Precisa revisar os tópicos de aprendizado.")
+    
+    pausar()
+
+def menu_aprendizado():
+    while True:
+        limpar_tela()
+        print("=== MODO APRENDIZADO ===")
+        print("Escolha um tópico para estudar:")
+        print("1. Evolução Histórica (60s/70s)")
+        print("2. Sistemas Monoprogramáveis")
+        print("3. Sistemas Multiprogramáveis (Batch, Time-sharing, Real-time)")
+        print("4. Sistemas Multiprocessadores (Acoplados, SMP, NUMA)")
+        print("5. Voltar ao Menu Principal")
+        
+        opcao = input("\nOpção: ")
+        
+        if opcao == "5":
+            break
+        elif opcao in conteudos:
+            limpar_tela()
+            print(conteudos[opcao]["texto"])
+            pausar()
+        else:
+            print("Opção inválida!")
+            time.sleep(1)
+
+def main():
+    while True:
+        limpar_tela()
+        print("=========================================")
+        print("    ESTUDO DE SISTEMAS OPERACIONAIS      ")
+        print("=========================================")
+        print("1. 📖 Modo Aprendizado (Ler Conteúdo)")
+        print("2. 📝 Modo Exercícios (Praticar)")
+        print("3. 🚪 Sair")
+        
+        escolha = input("\nEscolha uma opção: ")
+        
+        if escolha == "1":
+            menu_aprendizado()
+        elif escolha == "2":
+            limpar_tela()
+            try:
+                qtd = int(input("Quantos exercícios você deseja fazer (1-30)? "))
+                if 1 <= qtd <= 30:
+                    rodar_quiz(qtd)
+                else:
+                    print("Por favor, escolha um número entre 1 e 30.")
+                    time.sleep(2)
+            except ValueError:
+                print("Entrada inválida! Digite apenas números.")
+                time.sleep(2)
+        elif escolha == "3":
+            print("\nSaindo... Bons estudos! 👋")
+            break
+        else:
+            print("Opção inválida, tente novamente.")
+            time.sleep(1)
+
+if __name__ == "__main__":
+    main()
